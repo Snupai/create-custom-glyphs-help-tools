@@ -1,6 +1,8 @@
 # Installer for [Custom Glyph tools](https://github.com/SebiAi/custom-nothing-glyph-tools)
 
-Currently in alpha!
+Fast written Installer in Python.
+
+Currently in **alpha**!
 
 ***
 
