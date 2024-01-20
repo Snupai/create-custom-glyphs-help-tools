@@ -5,7 +5,8 @@ import sys
 import subprocess
 import platform
 
-GITHUB_URL = 'https://github.com/SebiAi/custom-nothing-glyph-tools'
+OWN_GITHUB_URL = 'https://github.com/Snupai/create-custom-glyphs-help-tools'
+Custom_Glyph_tools_GITHUB_URL = 'https://github.com/SebiAi/custom-nothing-glyph-tools'
 WINGET_BASE_URL = 'https://github.com/microsoft/winget-cli/releases/latest/download/'
 WINGET_PACKAGE = 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'
 WINGET_HASH = 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.txt'
@@ -182,16 +183,17 @@ def WindowsInstallation():
     subprocess.run(['python', '-m', 'venv', 'custom_glyph_tools\\venv'])
 
     print('Downloading requirements.txt')
-    subprocess.run(['curl', '-L', GITHUB_URL + '/raw/main/requirements.txt', '-o', 'requirements.txt'])
+    subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/requirements.txt', '-o', 'requirements.txt'])
     print('Checking if pip packages are installed')
     subprocess.run(['custom_glyph_tools\\venv\\Scripts\\pip.exe', 'install', '-r', 'requirements.txt'])
     subprocess.run(['custom_glyph_tools\\venv\\Scripts\\pip.exe', 'install', 'python-ffmpeg'])
 
     # download custom glyph tools
     print('Downloading custom glyph tools')
-    subprocess.run(['curl', '-L', GITHUB_URL + '/raw/main/GlyphModder.py', '-o', 'custom_glyph_tools\\GlyphModder.py'])
-    subprocess.run(['curl', '-L', GITHUB_URL + '/raw/main/GlyphTranslator.py', '-o', 'custom_glyph_tools\\GlyphTranslator.py'])
-    subprocess.run(['curl', '-L', GITHUB_URL + '/raw/main/MidiToLabel.py', '-o', 'custom_glyph_tools\\MidiToLabel.py'])
+    subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/GlyphModder.py', '-o', 'custom_glyph_tools\\GlyphModder.py'])
+    subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/GlyphTranslator.py', '-o', 'custom_glyph_tools\\GlyphTranslator.py'])
+    subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/MidiToLabel.py', '-o', 'custom_glyph_tools\\MidiToLabel.py'])
+    subprocess.run(['curl', '-L', OWN_GITHUB_URL + '/raw/main/create-custom-glyph.py', '-o', 'custom_glyph_tools\\create-custom-glyph.py'])
 
     # create a file to spawn new shell with virtual environment
     print('Creating run.bat')
