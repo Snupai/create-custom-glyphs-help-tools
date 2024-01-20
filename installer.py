@@ -4,8 +4,12 @@ import os
 import sys
 import subprocess
 import platform
+import time
+from termcolor import cprint
+from colorama import just_fix_windows_console
 
 OWN_GITHUB_URL = 'https://github.com/Snupai/create-custom-glyphs-help-tools'
+SebiAi_Tutorial_URL = 'https://www.youtube.com/watch?v=YlJBqQxSgWA'
 Custom_Glyph_tools_GITHUB_URL = 'https://github.com/SebiAi/custom-nothing-glyph-tools'
 WINGET_BASE_URL = 'https://github.com/microsoft/winget-cli/releases/latest/download/'
 WINGET_PACKAGE = 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'
@@ -14,218 +18,251 @@ MICROSOFT_VCLIBS_URL = 'https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx'
 MICROSOFT_UI_XAML_URL = 'https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.5/Microsoft.UI.Xaml.2.8.x64.appx'
 REFRENV_URL = 'https://raw.githubusercontent.com/badrelmers/RefrEnv/main/refrenv.bat'
 
-def printInfo():
+def printInfoText():
     print('This script will install all required packages for the custom glyph tools to work')
-    print('This script will also install the custom glyph tools')
+    print('This script will also install the custom glyph tools itself')
     print('\nYou\'ll need a working internet connection for this script to work')
     print('\nThis script will install the following packages:')
     print(' - ffmpeg')
     print(' - python')
     print(' - pip packages')
     print(' - custom glyph tools')
+    print(' - create-custom-glyph.py')
     print('\nThis script will also create the following folders:')
     print(' - custom_glyph_tools')
     print(' - custom_glyph_tools\\venv')
-    print('Optionally this script will install Audacity.')
+    print('\nOptionally this script will install Audacity.')
+    print('\nDo you want to continue? (Y/n)')
+    if input().lower() == '' or input().lower() == 'y':
+        pass
+    else:
+        printInfo("Installation aborted")
+        sys.exit(0)
 
 
-def LinuxInstallation(): 
-    print('Error: To be implemented')
+def LinuxInstallation():
+    printError("To be implemented")
     sys.exit(1)
 
 def MacOSInstallation():
-    print('Error: MacOS is not supported')
+    printError("MacOS is not supported")
     sys.exit(1)
 
 
 
 def WindowsInstallation():
+    printInfoText()
     subprocess.run(['curl', '-L', REFRENV_URL, '-o', 'refrenv.bat'])
 
     def removeShit(exitCode = 1):
-        print('Removing temporary files')
+        printInfo("Removing temporary files")
         try:
             os.remove('refrenv.bat')
             os.remove('requirements.txt')
         except:
             pass
+        printInfo("Press any key to continue")
+        input()
         sys.exit(exitCode)
 
     def refreshEnv():
-        print('Refreshing environment variables')
+        printInfo("Refreshing environment variables")
         subprocess.run(['refrenv.bat'])
 
     def wingetInstall():
         try:
-            print('Downloading winget')
+            printInfo("Downloading winget")
             subprocess.run(['curl', '-L', WINGET_BASE_URL + WINGET_PACKAGE, '-o', WINGET_PACKAGE])
             subprocess.run(['curl', '-L', WINGET_BASE_URL + WINGET_HASH, '-o', WINGET_HASH])
             # get hash from file and compare with hash in the text file
             with open(WINGET_HASH, 'r') as f:
                 winget_hash = f.read().split(' ')[0]
             if winget_hash != hashlib.sha256(open(WINGET_PACKAGE, 'rb').read()).hexdigest():
-                print('Error: Hashes don\'t match')
+                printError("Hashes don't match")
                 sys.exit(1)
             # download and install vclibs and microsoft ui xaml
-            print('Downloading vclibs')
+            printInfo("Downloading vclibs")
             subprocess.run(['curl', '-L', MICROSOFT_VCLIBS_URL, '-o', 'Microsoft.VCLibs.x64.14.00.Desktop.appx'])
-            print('Downloading microsoft ui xaml')
+            printInfo("Downloading microsoft ui xaml")
             subprocess.run(['curl', '-L', MICROSOFT_UI_XAML_URL, '-o', 'Microsoft.UI.Xaml.2.8.x64.appx'])
-            print('Installing winget')
+            printInfo("Installing winget")
             subprocess.run(['Add-AppxPackage', '-Path', WINGET_PACKAGE, '-DependencyPath', '"Microsoft.VCLibs.x64.14.00.Desktop.appx, Microsoft.UI.Xaml.2.8.x64.appx"'])
-            print('Removing temporary files')
             os.remove(WINGET_PACKAGE)
             os.remove(WINGET_HASH)
             os.remove('Microsoft.VCLibs.x64.14.00.Desktop.appx')
             os.remove('Microsoft.UI.Xaml.2.8.x64.appx')
         except:
-            print('Error: winget installation failed')
-            print('Please install winget manually')
+            printError("winget installation failed")
+            printInfo("Please install winget manually")
             os.system('start ms-windows-store://pdp/?ProductId=9nblggh4nns1')
-            print('Press any key to continue')
+            printInfo("Press any key to continue")
             input()
             try:
                 refreshEnv()
                 subprocess.run(['winget', '--version'])
             except:
-                print('Error: winget installation failed')
-                sys.exit(1)
-            print('Manual winget installation successful')
+                printError("Error: winget installation failed")
+                removeShit()
+            printInfo("Manual winget installation successful")
 
-    print('Checking if Windows build is 16299 or higher')
+    printInfo("Checking if Windows build is 16299 or higher")
     win_build = platform.win32_ver()[1].split('.')[len(platform.win32_ver()[1].split('.')) - 1]
-    print('Windows build number: ' + win_build)
+    printInfo("Windows build number: " + win_build)
     if int(win_build) < 16299:
-        print('Error: Windows build 16299 or higher is required')
+        printError("Windows build 16299 or higher is required")
         removeShit()
 
-    print('Checking if script is running as administrator')
+    printInfo("Checking if script is running as administrator")
     if not ctypes.windll.shell32.IsUserAnAdmin():
-        print('Error: Run as administrator')
+        printError("Run as administrator")
         removeShit()
-    print('Running as administrator')
+    printInfo("Running as administrator")
 
-    print('Checking if winget is installed')
+    printInfo("Checking if winget is installed")
     try:
         subprocess.run(['winget', '--version'])
-        print('winget installation found')
+        printInfo("winget installation found")
     except:
-        print('Error: winget is not installed')
-        print('Do you want to install winget? (Y/n)')
+        printError("winget is not installed")
+        printInfo("Do you want to install winget? (Y/n)")
         if input().lower() == '' or input().lower() == 'y':
             wingetInstall()
         else:
-            print('Error: winget is required')
+            printCriticalError("winget is required")
             removeShit()
 
-    print('Checking if Audacity is installed')
+    printInfo("Checking if Audacity is installed")
     if not os.path.isfile('C:\\Program Files\\Audacity\\audacity.exe'):
-        print('No Audacity installation found in "C:\\Program Files\\".')
-        print('Do you want to install Audacity? (Y/n)')
-        # if input is y or empty install audacity
+        printWarning("No Audacity installation found in \"C:\\Program Files\\\".")
+        printInfo("Do you want to install Audacity? (Y/n)")
         if input().lower() == '' or input().lower() == 'y':
-            subprocess.run(['winget', 'install', 'Audacity'])
+            try:
+                subprocess.run(['winget', 'install', 'Audacity'])
+            except:
+                printError("Audacity installation failed")
+                printInfo("Please install Audacity manually")
+                printInfo("Press any key to continue")
+                input()
         else:
-            print('Error: Audacity is required')
-            removeShit()
-    print('Audacity installation found')
+            printWarning("Audacity is recommended but not required")
+            printInfo("continuing installation")
+            time.sleep(2)
+    else:
+        printInfo("Audacity installation found")
 
-    print('Checking if ffmpeg is installed')
+    printInfo("Checking if ffmpeg is installed")
     try:
         subprocess.run(['ffmpeg', '-version'])
     except:
-        print('No ffmpeg installation found.')
-        print('Do you want to install ffmpeg? (Y/n)')
+        printWarning("No ffmpeg installation found.")
+        printInfo("Do you want to install ffmpeg? (Y/n)")
         if input().lower() == '' or input().lower() == 'y':
             subprocess.run(['winget', 'install', 'Gyan.FFmpeg'])
         else:
-            print('Error: ffmpeg is required')
+            printError("ffmpeg is required")
             removeShit()
-    print('ffmpeg installation found')
+    printInfo("ffmpeg installation found")
 
-    print('Checking if python is installed')
+    printInfo("Checking if python is installed")
     try:
         subprocess.run(['python', '--version'])
     except:
-        print('No python installation found.')
-        print('Do you want to install python? (Y/n)')
+        printWarning("No python installation found.")
+        printInfo("Do you want to install python? (Y/n)")
         if input().lower() == '' or input().lower() == 'y':
             subprocess.run(['winget', 'install', 'Python.Python.3.11'])
         else:
-            print('Error: python is required')
+            printError("python is required")
             removeShit()
-    print('python installation found')
+    printInfo("python installation found")
 
     refreshEnv()
 
-    print('Checking if pip is installed')
+    printInfo("Checking if pip is installed")
     try:
         subprocess.run(['pip', '--version'])
     except:
-        print('No pip found.')
+        printError("No pip found.")
         if os.path.isfile('python.exe'):
-            print('Do you want to install pip? (Y/n)')
+            printInfo("Do you want to install pip? (Y/n)")
             if input().lower() == '' or input().lower() == 'y':
-                subprocess.run(['python', '-m', 'ensurepip'])
+                subprocess.run(['python', '-m', 'pip', '--version'])
             else:
-                print('Error: pip is required')
+                printError("pip is required")
                 removeShit()
         else:
-            print('Error: python has not been installed properly')
+            printError("python has not been installed properly")
             removeShit()
-    print('pip installation found')
+    printInfo("pip installation found")
 
-    # create a folder for the custom glyph tools
+    printInfo("Creating custom_glyph_tools folder")
     if not os.path.isdir('custom_glyph_tools'):
         os.mkdir('custom_glyph_tools')
-    # run command python -m venv custom_glyph_tools\venv
-    print('Creating virtual environment')
+
+    printInfo("Creating virtual environment")
     subprocess.run(['python', '-m', 'venv', 'custom_glyph_tools\\venv'])
 
-    print('Downloading requirements.txt')
+    printInfo("Downloading requirements.txt")
     subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/requirements.txt', '-o', 'requirements.txt'])
-    print('Checking if pip packages are installed')
+    printInfo("Checking if pip packages are installed")
     subprocess.run(['custom_glyph_tools\\venv\\Scripts\\pip.exe', 'install', '-r', 'requirements.txt'])
     subprocess.run(['custom_glyph_tools\\venv\\Scripts\\pip.exe', 'install', 'python-ffmpeg'])
 
-    # download custom glyph tools
-    print('Downloading custom glyph tools')
+    printInfo("Downloading custom glyph tools")
     subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/GlyphModder.py', '-o', 'custom_glyph_tools\\GlyphModder.py'])
     subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/GlyphTranslator.py', '-o', 'custom_glyph_tools\\GlyphTranslator.py'])
     subprocess.run(['curl', '-L', Custom_Glyph_tools_GITHUB_URL + '/raw/main/MidiToLabel.py', '-o', 'custom_glyph_tools\\MidiToLabel.py'])
-    subprocess.run(['curl', '-L', OWN_GITHUB_URL + '/raw/main/create-custom-glyph.py', '-o', 'custom_glyph_tools\\create-custom-glyph.py'])
+    subprocess.run(['curl', '-L', OWN_GITHUB_URL + '/raw/master/create-custom-glyph.py', '-o', 'custom_glyph_tools\\create-custom-glyph.py'])
 
-    # create a file to spawn new shell with virtual environment
-    print('Creating run.bat')
-    run_bat = '@echo off\necho Usage:  \'python GlyphTranslator.py MyLabelFile.txt\'\necho\t\t\'python GlyphModder.py -t MyCustomTitle -w MyLabelFile.glypha MyLabelFile.glyphc1 MyGlyphCreation.ogg\'\necho\t\t\'python MidiToLabel.py MyMidiFile.mid\'\nAlternatively you can use the script create-custom-glyph\necho\t\t\'python create-custom-glyph.py -l MyLabelsFile.txt -a MyAudioFile.ogg\'\necho\t\t\'pyhton create-custom-glyph.py -l MyLabelsFile.mid -a MyAudioFile.ogg\'\necho Info: Audio file should not be required to be .ogg, will be converted automatically.\necho.\necho IMPORTANT: You need to put "" around the arguments if your file names have spaces. e.g. "My Label File.txt"\ncall .\\venv\\Scripts\\activate.bat\ncmd /k\n@echo on'
-    # create file and write to it
-    with open('custom_glyph_tools\\run.bat', 'w') as f:
-        f.write(run_bat)
+    printInfo("Creating start.bat")
+    start_bat = '@echo off\necho Usage:  \'python GlyphTranslator.py MyLabelFile.txt\'\necho\t\t\'python GlyphModder.py -t MyCustomTitle -w MyLabelFile.glypha MyLabelFile.glyphc1 MyGlyphCreation.ogg\'\necho\t\t\'python MidiToLabel.py MyMidiFile.mid\'\necho Alternatively you can use the script create-custom-glyph\necho\t\t\'python create-custom-glyph.py -l MyLabelsFile.txt -a MyAudioFile.ogg\'\necho\t\t\'pyhton create-custom-glyph.py -l MyLabelsFile.mid -a MyAudioFile.ogg\'\necho Info for the create-custom-glyph.py: Audio file should not be required to be .ogg, will be converted automatically.\necho.\necho IMPORTANT: You need to put "" around the arguments if your file names have spaces. e.g. "My Label File.txt"\ncall .\\venv\\Scripts\\activate.bat\ncmd /k\n@echo on'
+    with open('custom_glyph_tools\\start.bat', 'w') as f:
+        f.write(start_bat)
 
-    print('\nInstallation successful\n')
-    print('To start using the custom glyph tools, just run "run.bat" in the "custom_glyph_tools" folder by double clicking it.')
-    print('Press any key to continue')
-    input()
+    printInfo("Creating SebiAi's github shortcut")
+    with open('custom_glyph_tools\\SebiAi\'s github page.url', 'w') as f:
+        f.write('[InternetShortcut]\nURL=' + Custom_Glyph_tools_GITHUB_URL)
+    with open('custom_glyph_tools\\SebiAi\'s Tutorial.url', 'w') as f:
+        f.write('[InternetShortcut]\nURL=' + SebiAi_Tutorial_URL)
+
+    cprint("\nInstallation successful\n", color='green', attrs=['bold'])
+    printInfo("To start using the custom glyph tools, just run \"start.bat\" in the \"custom_glyph_tools\" folder by double clicking it.")
+    # open explorer in the custom_glyph_tools folder
+    os.system('explorer custom_glyph_tools')
     removeShit(0)
 
 
+# Print critical error message and exit
+def printCriticalError(message: str, exitCode: int = 1):
+    printError(message)
+    #raise Exception(message)
+    sys.exit(exitCode)
 
+# Print error message
+def printError(message :str):
+    cprint("ERROR: " + message, color="red", attrs=["bold"], file=sys.stderr)
+
+# Print warning message
+def printWarning(message: str):
+    cprint("WARNING: " + message, color="yellow", attrs=["bold"])
+
+# Print info message
+def printInfo(message: str):
+    cprint("INFO: " + message, color="cyan")
 
 
 
 match os.name:
     case 'nt':
-        print('Windows detected')
-        printInfo()
+        just_fix_windows_console()
+        printInfo("Windows detected")
         WindowsInstallation()
     case 'posix':
-        print('Linux detected')
-        printInfo()
+        printInfo("Linux detected")
         LinuxInstallation()
     case 'darwin':
-        print('MacOS detected')
-        printInfo()
+        printInfo("MacOS detected")
         MacOSInstallation()
     case default:
-        print('Error: Unsupported operating system')
+        printError("Unsupported operating system")
         sys.exit(1)
