@@ -4,7 +4,7 @@ from ffmpeg import FFmpeg
 import subprocess
 import shutil
 
-args_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description="Takes a wav file and outputs a labels file that can be used with SebiAi's custom glyph lighting scripts alongside an ogg audio file.")
+args_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description="Takes a audio file and a labels file that can be used with SebiAi's custom glyph lighting scripts and will create the final file for you.")
 args_parser.add_argument("--labels-file", "-l", required=True, help="The label file to be processed. OR the midi file to be processed.")
 args_parser.add_argument("--watermark-file", "-w", default=None, help="The watermark file to be processed.")
 args_parser.add_argument("--audio-file", "-a", required=True, help="The audio file to be processed.")
