@@ -39,6 +39,10 @@ def printInfoText():
         printInfo("Installation aborted")
         sys.exit(0)
 
+def checkIfSubString(string: str, subString: str):
+    if subString in string:
+        return True
+    return False
 
 def LinuxInstallation():
     printError("To be implemented")
@@ -86,7 +90,8 @@ def WindowsInstallation():
             printInfo("Downloading microsoft ui xaml")
             subprocess.run(['curl', '-L', MICROSOFT_UI_XAML_URL, '-o', 'Microsoft.UI.Xaml.2.8.x64.appx'])
             printInfo("Installing winget")
-            subprocess.run(['Add-AppxPackage', '-Path', WINGET_PACKAGE, '-DependencyPath', '"Microsoft.VCLibs.x64.14.00.Desktop.appx, Microsoft.UI.Xaml.2.8.x64.appx"'])
+            # TODO: this is not working didn't install winget and failed silently
+            subprocess.run(['powershell', 'Add-AppxPackage', '-Path', WINGET_PACKAGE, '-DependencyPath', '"Microsoft.VCLibs.x64.14.00.Desktop.appx, Microsoft.UI.Xaml.2.8.x64.appx"'])
             os.remove(WINGET_PACKAGE)
             os.remove(WINGET_HASH)
             os.remove('Microsoft.VCLibs.x64.14.00.Desktop.appx')
@@ -130,6 +135,17 @@ def WindowsInstallation():
         else:
             printCriticalError("winget is required")
             removeShit()
+    else:
+        printInfo("trying to update the sources")
+        try:
+            response = subprocess.run(['winget', 'source', 'update'], capture_output=True).stdout.decode('utf-8')
+            if checkIfSubString('Cancelled', response):
+                raise Exception("winget source update failed")
+        except:
+            printCriticalError("winget source can't be updated")
+            printInfo("Do you want to try manually update winget? (Y/n)")
+            if input().lower() == '' or input().lower() == 'y':
+                wingetInstall()
 
     printInfo("Checking if Audacity is installed")
     if not os.path.isfile('C:\\Program Files\\Audacity\\audacity.exe'):
@@ -137,7 +153,7 @@ def WindowsInstallation():
         printInfo("Do you want to install Audacity? (Y/n)")
         if input().lower() == '' or input().lower() == 'y':
             try:
-                subprocess.run(['winget', 'install', 'Audacity'])
+                subprocess.run(['winget', 'install', 'Audacity.Audacity'])
             except:
                 printError("Audacity installation failed")
                 printInfo("Please install Audacity manually")
@@ -165,12 +181,20 @@ def WindowsInstallation():
 
     printInfo("Checking if python is installed")
     try:
-        subprocess.run(['python', '--version'])
+        response = subprocess.run(['python', '--version'], capture_output=True).stdout.decode('utf-8')
+        if checkIfSubString('Python was not found', response):
+            raise Exception("Python was not found")
     except:
         printWarning("No python installation found.")
         printInfo("Do you want to install python? (Y/n)")
         if input().lower() == '' or input().lower() == 'y':
-            subprocess.run(['winget', 'install', 'Python.Python.3.11'])
+            try:
+                subprocess.run(['winget', 'install', 'Python.Python.3.12'])
+            except:
+                printError("python installation failed")
+                printInfo("Please install python manually")
+                printInfo("Press any key to continue")
+                input()
         else:
             printError("python is required")
             removeShit()
@@ -180,6 +204,9 @@ def WindowsInstallation():
 
     printInfo("Checking if pip is installed")
     try:
+        # make new cmd instance with refrenv to refresh the environment variables and then run pip in that instance
+        # subprocess.run(['refrenv.bat', 'cmd', '/c', 'pip', '--version'])
+        #TODO: this is not working even with refrenv maybe relaunch the script with parameter --skip-to-pip
         subprocess.run(['pip', '--version'])
     except:
         printError("No pip found.")
